@@ -1,0 +1,49 @@
+---
+title: "HW4_Schulz_Sherry"
+author: "Sherry Schulz"
+date: "3/4/2022"
+output: html_document
+knit: (function(input_file, encoding){out_dir<-'docs';rmarkdown::render(input_file,encoding=encoding,output_file=file.path(dirname(input_file),out_dir, 'index.html'))})
+---
+```{r}
+#install.packages("DT")
+#install.packages("rio")
+```
+I wanted to investigate how life expectancy has changed over the past 20 years worldwide.
+The life expectancy data set was retrieved from https://www.kaggle.com/deepcontractor/human-life-expectancy-around-the-world
+The world coordinate data set was retrieved from https://www.kaggle.com/paultimothymooney/latitude-and-longitude-for-every-country-and-state
+
+
+```{r}
+library(DT)
+library(rio)
+library("tidyverse")
+library("dplyr")
+library("tidyr")
+```
+
+```{r}
+life<-read.csv("Human_life_Expectancy.csv")
+location<-read.csv("World_Locator.csv")
+location<-location[,2:4] #Keeping columns 2, 3, and 4 of the location file and replace the file.
+```
+
+
+```{r}
+life<-life[life$Level=="National",]
+combined<-left_join(life, location, by = "Country") #For each row of national it is trying to match the location in the location file. Now it combines the 2 files.
+
+```
+
+```{r}
+combined<-replace(combined, combined == "Not Available", NA) #replace Not Available to NA
+for (i in 5:ncol(combined)){
+  combined[,i] <- as.numeric(combined[,i])
+} #loop from i=5 onward in combined, take the ith row in combined and replace it with numeric category.
+```
+In this table, the user is able to search the life expectancy of each country from 1990 to 2019. Also, the user can sort the life expectancy per year, per country, and per location. The purpose of this table is for users to track the progression of the life expectancy and oberve possible correlation between life expectancy and location of the country.
+```{r}
+mytable<-datatable(combined, filter = "top", rownames= FALSE)
+mytable
+saveWidget(mytable, "mytable.html")
+```
